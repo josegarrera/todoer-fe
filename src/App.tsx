@@ -10,6 +10,8 @@ interface Todo {
 const App = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingTitle, setLoadingTitle] = useState(false);
 
   useEffect(() => {
     fetchTodos();
@@ -20,17 +22,37 @@ const App = () => {
     setTodos(response.data);
   };
 
+  const fetchRandomTitle = async () => {
+    setLoadingTitle(true);
+    try {
+      const response = await axios.get(
+        'http://localhost:3002/random-title'
+      );
+      setTitle(response.data.title);
+    } catch (error) {
+      console.error('Error fetching random title', error);
+    }
+    setLoadingTitle(false);
+  };
+
   const addTodo = async () => {
     if (title.trim() === '') {
-      alert('Please enter a title for the todo');
+      alert('Please enter a title or generate a random one');
       return;
     }
 
-    const response = await axios.post('http://localhost:3001/todos', {
-      title,
-    });
-    setTodos([...todos, response.data]);
-    setTitle('');
+    setLoading(true); // Activar el estado de carga
+    try {
+      const response = await axios.post(
+        'http://localhost:3001/todos',
+        { title }
+      );
+      setTodos([...todos, response.data]);
+      setTitle('');
+    } catch (error) {
+      console.error('Error adding todo', error);
+    }
+    setLoading(false); // Desactivar el estado de carga
   };
 
   const completeTodo = async (_id: string) => {
@@ -64,14 +86,26 @@ const App = () => {
             type="text"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            onKeyDown={handleKeyDown} // Escucha el evento 'Enter'
+            onKeyDown={handleKeyDown} // Escuchar la tecla Enter
             placeholder="New Todo"
             style={styles.input}
+            disabled={loading || loadingTitle} // Deshabilitar mientras carga
           />
-          <button onClick={addTodo} style={styles.addButton}>
-            Add Todo
+          <button
+            onClick={addTodo}
+            style={styles.addButton}
+            disabled={loading}
+          >
+            {loading ? 'Adding...' : 'Add Todo'}
           </button>
         </div>
+        <button
+          onClick={fetchRandomTitle}
+          style={styles.randomButton}
+          disabled={loadingTitle}
+        >
+          {loadingTitle ? 'Generating...' : 'Generate Random Title'}
+        </button>
         <ul style={styles.todoList}>
           {todos.map(todo => (
             <li key={todo._id} style={styles.todoItem}>
@@ -148,6 +182,15 @@ const styles: { [key: string]: CSSProperties } = {
     border: 'none',
     backgroundColor: '#61dafb',
     cursor: 'pointer',
+  },
+  randomButton: {
+    padding: '10px 20px',
+    borderRadius: '4px',
+    border: 'none',
+    backgroundColor: '#4caf50',
+    cursor: 'pointer',
+    marginTop: '10px',
+    color: 'white',
   },
   todoList: {
     listStyleType: 'none',
