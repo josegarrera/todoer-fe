@@ -1,6 +1,7 @@
 import { useEffect, useState, CSSProperties } from 'react';
 import axios from 'axios';
 
+const apiUrl = import.meta.env.VITE_API_URL as string;
 interface Todo {
   _id: string;
   title: string;
@@ -18,16 +19,14 @@ const App = () => {
   }, []);
 
   const fetchTodos = async () => {
-    const response = await axios.get('http://localhost:3001/todos');
+    const response = await axios.get(`${apiUrl}:3001/todos`);
     setTodos(response.data);
   };
 
   const fetchRandomTitle = async () => {
     setLoadingTitle(true);
     try {
-      const response = await axios.get(
-        'http://localhost:3002/random-title'
-      );
+      const response = await axios.get(`${apiUrl}:3002/random-title`);
       setTitle(response.data.title);
     } catch (error) {
       console.error('Error fetching random title', error);
@@ -43,10 +42,9 @@ const App = () => {
 
     setLoading(true); // Activar el estado de carga
     try {
-      const response = await axios.post(
-        'http://localhost:3001/todos',
-        { title }
-      );
+      const response = await axios.post(`${apiUrl}:3001/todos`, {
+        title,
+      });
       setTodos([...todos, response.data]);
       setTitle('');
     } catch (error) {
@@ -57,7 +55,7 @@ const App = () => {
 
   const completeTodo = async (_id: string) => {
     const response = await axios.patch(
-      `http://localhost:3001/todos/${_id}/complete`
+      `${apiUrl}:3001/todos/${_id}/complete`
     );
     setTodos(
       todos.map(todo => (todo._id === _id ? response.data : todo))
@@ -65,7 +63,7 @@ const App = () => {
   };
 
   const deleteTodo = async (_id: string) => {
-    await axios.delete(`http://localhost:3001/todos/${_id}`);
+    await axios.delete(`${apiUrl}:3001/todos/${_id}`);
     setTodos(todos.filter(todo => todo._id !== _id));
   };
 
@@ -86,10 +84,10 @@ const App = () => {
             type="text"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            onKeyDown={handleKeyDown} // Escuchar la tecla Enter
+            onKeyDown={handleKeyDown}
             placeholder="New Todo"
             style={styles.input}
-            disabled={loading || loadingTitle} // Deshabilitar mientras carga
+            disabled={loading || loadingTitle}
           />
           <button
             onClick={addTodo}
