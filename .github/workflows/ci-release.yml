@@ -18,7 +18,7 @@ jobs:
           username: josegarrera
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           script: |
-            docker stop title-generator || true
-            docker rm title-generator || true
-            docker pull josegarrera/title-generator:${{ github.sha }}
-            docker run -d --name title-generator -p 5173:5173 josegarrera/title-generator:${{ github.sha }}
+            docker stop fe || true
+            docker rm fe || true
+            docker pull josegarrera/fe:${{ github.sha }}
+            docker run -d --name fe -p 5173:5173 josegarrera/fe:${{ github.sha }}
