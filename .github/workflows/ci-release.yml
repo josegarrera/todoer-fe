@@ -21,4 +21,4 @@ jobs:
             docker stop fe || true
             docker rm fe || true
             docker pull josegarrera/fe:${{ github.sha }}
-            docker run -d --name fe -p 80:80 josegarrera/fe:${{ github.sha }}
+            docker run -d --name fe -p 80:80 -e VITE_API_URL="${{ secrets.VM_IP }}" josegarrera/fe:${{ github.sha }}
