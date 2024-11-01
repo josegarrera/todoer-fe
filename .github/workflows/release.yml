@@ -2,23 +2,40 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Environment (e.g. UAT, PROD)'
+        required: true
+        default: 'UAT'
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set environment variables
+        id: vars
+        run: |
+          echo "DOCKER_IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
+          if [ "${{ github.event.inputs.environment }}" == "UAT" ]; then
+            echo "VM_IP=${{ secrets.UAT_VM_IP }}" >> $GITHUB_ENV
+            echo "SSH_KEY=${{ secrets.UAT_GCP_SSH_PRIVATE_KEY }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "PROD" ]; then
+            echo "VM_IP=${{ secrets.PROD_VM_IP }}" >> $GITHUB_ENV
+            echo "SSH_KEY=${{ secrets.PROD_GCP_SSH_PRIVATE_KEY }}" >> $GITHUB_ENV
+          fi
+
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: SSH and Deploy to GCP VM
         uses: appleboy/ssh-action@v0.1.3
         with:
-          host: ${{ secrets.VM_IP }}
+          host: ${{ env.VM_IP }}
           username: josegarrera
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          key: ${{ env.SSH_KEY }}
           script: |
             docker stop fe || true
             docker rm fe || true
-            docker pull josegarrera/fe:${{ github.sha }}
-            docker run -d --name fe -p 80:80 -e VITE_API_URL="${{ secrets.VM_IP }}" josegarrera/fe:${{ github.sha }}
+            docker pull josegarrera/fe:${{ env.DOCKER_IMAGE_TAG }}
+            docker run -d --name fe -p 80:80 -e VITE_API_URL="${{ env.VM_IP }}" josegarrera/fe:${{ env.DOCKER_IMAGE_TAG }}
