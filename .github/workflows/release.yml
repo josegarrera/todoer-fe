@@ -37,8 +37,8 @@ jobs:
           script: |
             docker stop fe || true
             docker rm fe || true
-            docker pull josegarrera/fe:${{ env.DOCKER_IMAGE_TAG }}
-            docker run -d --name fe -p 80:80 -e VITE_API_URL="${{ env.VM_IP }}" josegarrera/fe:${{ env.DOCKER_IMAGE_TAG }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/fe:${{ env.DOCKER_IMAGE_TAG }}
+            docker run -d --name fe -p 80:80 -e VITE_API_URL="${{ env.VM_IP }}" ${{ secrets.DOCKER_USERNAME }}/fe:${{ env.DOCKER_IMAGE_TAG }}
 
       - name: SSH and Deploy to GCP VM in PROD
         if: ${{ github.event.inputs.environment == 'PROD' }}
@@ -50,5 +50,5 @@ jobs:
           script: |
             docker stop fe || true
             docker rm fe || true
-            docker pull josegarrera/fe:${{ env.DOCKER_IMAGE_TAG }}
-            docker run -d --name fe -p 80:80 -e VITE_API_URL="${{ env.VM_IP }}" josegarrera/fe:${{ env.DOCKER_IMAGE_TAG }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/fe:${{ env.DOCKER_IMAGE_TAG }}
+            docker run -d --name fe -p 80:80 -e VITE_API_URL="${{ env.VM_IP }}" ${{ secrets.DOCKER_USERNAME }}/fe:${{ env.DOCKER_IMAGE_TAG }}
